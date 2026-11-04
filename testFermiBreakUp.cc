@@ -106,7 +106,7 @@ int main(int argc, char** argv)
     // --------------------------------------------------
     // Wrapper on the call of the model
     // --------------------------------------------------
-    FragmentStatistics stats;
+    FragmentStatistics stats(massNumberA,atomicNumberZ);
 
     auto unittest_break = [&fermi, &fragmentCounts,&stats,
                             massNumberA,

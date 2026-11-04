@@ -44,6 +44,10 @@ public:
         Moments multiplicityPerEvent;
     };
 
+public:
+    FragmentStatistics(int A, int Z)
+        : initialA(A), initialZ(Z)
+    {}
     // Global statistics
     unsigned long long nEvents = 0;
     unsigned long long totalFragments = 0;
@@ -65,6 +69,8 @@ public:
 
         double eventKineticEnergy = 0.0;
         double eventExcitationEnergy = 0.0;
+        int eventA = 0;
+        int eventZ = 0;
 
         // Temporary event isotope multiplicities
         std::map<std::pair<int,int>, unsigned long long> eventIsotopes;
@@ -73,7 +79,8 @@ public:
 
             const int A = fragment->GetA_asInt();
             const int Z = fragment->GetZ_asInt();
-
+            eventA += A;
+            eventZ += Z;
             const auto isotope = std::make_pair(A, Z);
 
             isotopes[isotope].totalProduction++;
@@ -98,6 +105,17 @@ public:
             eventKineticEnergy += FragmentKineticEnergy;
             eventExcitationEnergy += FragmentExcitatEnergy;
         }
+
+        // Check conservation event by event
+        const int deltaA = eventA - initialA;
+        const int deltaZ = eventZ - initialZ;
+
+        if (deltaA == 0) ++conservedA;
+        if (deltaZ == 0) ++conservedZ;
+        if (deltaA == 0 && deltaZ == 0) ++conservedAZ;
+
+        maxDeltaA = std::max(maxDeltaA, std::abs(deltaA));
+        maxDeltaZ = std::max(maxDeltaZ, std::abs(deltaZ));
 
         kineticEnergy.Add(eventKineticEnergy);
         excitationEnergy.Add(eventExcitationEnergy);
@@ -158,7 +176,42 @@ public:
         }
 
         out << "\n========================================\n";
+
+        out << "--- Conservation checks ---\n";
+
+        out << "Mass number A: "
+            << conservedA << " / " << nEvents
+            << " events ("
+            << (nEvents ? 100.0 * conservedA / nEvents : 0.0)
+            << "%)\n";
+
+        out << "Charge Z:      "
+            << conservedZ << " / " << nEvents
+            << " events ("
+            << (nEvents ? 100.0 * conservedZ / nEvents : 0.0)
+            << "%)\n";
+
+        out << "Both A and Z:  "
+            << conservedAZ << " / " << nEvents
+            << " events ("
+            << (nEvents ? 100.0 * conservedAZ / nEvents : 0.0)
+            << "%)\n";
+
+        out << "Maximum |delta A|: " << maxDeltaA << '\n';
+        out << "Maximum |delta Z|: " << maxDeltaZ << "\n\n";
+
+        out << "\n========================================\n";
     }
+    private:
+        const int initialA;
+        const int initialZ;
+        // Conservation statistics
+        unsigned long long conservedA = 0;
+        unsigned long long conservedZ = 0;
+        unsigned long long conservedAZ = 0;
+
+        int maxDeltaA = 0;
+        int maxDeltaZ = 0;
 };
 
 #endif
