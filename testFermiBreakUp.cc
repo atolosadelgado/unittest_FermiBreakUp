@@ -10,6 +10,7 @@
 #include "G4ios.hh"
 
 #include "InputParser.hh"
+#include "FragmentStatistics.hh"
 
 int main(int argc, char** argv)
 {
@@ -105,8 +106,13 @@ int main(int argc, char** argv)
     // --------------------------------------------------
     // Wrapper on the call of the model
     // --------------------------------------------------
+    FragmentStatistics stats;
 
-    auto unittest_break = [&fermi, &fragmentCounts, massNumberA, atomicNumberZ, excitationEnergyMeV, groundMass]() {
+    auto unittest_break = [&fermi, &fragmentCounts,&stats,
+                            massNumberA,
+                            atomicNumberZ,
+                            excitationEnergyMeV,
+                            groundMass]() {
 
         G4LorentzVector momentum(
             0.0, 0.0, 0.0, groundMass + excitationEnergyMeV
@@ -119,6 +125,10 @@ int main(int argc, char** argv)
 
         // initial is consumed during the call
         fermi->BreakFragment(&products, initial);
+
+        stats.Analyze(products);
+
+
         if(testVerbosity>0){
             G4cout << "\nFinal state:" << G4endl;
             G4cout << "Number of fragments: "
@@ -162,7 +172,7 @@ int main(int argc, char** argv)
 				       << ", multiplicity = " << multiplicity
 				       << G4endl;
 		}
-
+    stats.PrintOutput(std::cout);
     return 0;
 }
 
