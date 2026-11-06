@@ -45,6 +45,23 @@ int main()
 {
 
     int nEvents = 1000;
+    int targetMassNumberA = 208;
+    int targetAtomicNumberZ = 82;
+    double projectileEnergyGeV = 100;
+    std::string theoGenerator = "FTFP";
+
+    std::string output_filename("test_");
+    output_filename += theoGenerator;
+    output_filename += "_";
+    output_filename += (std::to_string(targetMassNumberA) + "A");
+    output_filename += "_";
+    output_filename += (std::to_string(targetAtomicNumberZ) + "Z");
+    output_filename += "_";
+    output_filename += (std::to_string(int(projectileEnergyGeV)) + "GeV");
+    output_filename += "_";
+    output_filename += (std::to_string(nEvents) + "evts");
+    output_filename += ".root";
+
     int nEvents4printout = nEvents/10;
     // Random engine
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
@@ -66,14 +83,14 @@ int main()
     G4DynamicParticle dynamicParticle(
         G4Proton::Proton(),
         G4ThreeVector(0., 0., 1.),
-        100. * GeV
+        projectileEnergyGeV * GeV
     );
 
     G4HadProjectile projectile(dynamicParticle);
 
     // Initialize target: carbon-12
     G4Nucleus target;
-    target.SetParameters(208, 82);
+    target.SetParameters(targetMassNumberA, targetAtomicNumberZ);
 
     // Initialize FTFP
     std::unique_ptr<G4TheoFSGenerator> ftfp;
@@ -90,7 +107,7 @@ int main()
         // G4cerr << std::flush;
     }
 
-    TFile* file = new TFile("output2.root", "RECREATE");
+    TFile* file = new TFile(output_filename.c_str(), "update");
     precompound->hEexcFTFremnant->Write();
     precompound->hEexcEquilibrium->Write();
     precompound->hAEexcFTFremnant->Write();
