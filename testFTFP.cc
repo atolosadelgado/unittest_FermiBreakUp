@@ -44,11 +44,12 @@ void InitializeParticles();
 int main()
 {
 
-    int nEvents = 1000;
     int targetMassNumberA = 208;
     int targetAtomicNumberZ = 82;
     double projectileEnergyGeV = 100;
+    std::string projectileName = "proton";
     std::string theoGenerator = "FTFP";
+    int nEvents = 1000;
 
     std::string output_filename("test_");
     output_filename += theoGenerator;
@@ -57,7 +58,7 @@ int main()
     output_filename += "_";
     output_filename += (std::to_string(targetAtomicNumberZ) + "Z");
     output_filename += "_";
-    output_filename += (std::to_string(int(projectileEnergyGeV)) + "GeV");
+    output_filename += (projectileName + std::to_string(int(projectileEnergyGeV)) + "GeV");
     output_filename += "_";
     output_filename += (std::to_string(nEvents) + "evts");
     output_filename += ".root";
@@ -80,8 +81,12 @@ int main()
     G4cout << "My precompound type: " << param->GetPreCompoundType() << G4endl;
 
     // Initialize projectile: proton, 100 GeV
+
+
+   G4ParticleDefinition * projectileDef = G4ParticleTable::GetParticleTable()->FindParticle( projectileName );
+
     G4DynamicParticle dynamicParticle(
-        G4Proton::Proton(),
+        projectileDef,
         G4ThreeVector(0., 0., 1.),
         projectileEnergyGeV * GeV
     );
