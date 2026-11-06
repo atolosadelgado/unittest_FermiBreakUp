@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 project(testFermiBreakUp)
 
-find_package(ROOT REQUIRED COMPONENTS Core Hist RIO)
-
 find_package(Geant4 REQUIRED)
 
 include(${Geant4_USE_FILE})
@@ -20,9 +18,6 @@ add_executable(testFTF testFTF.cc)
 
 target_link_libraries(testFTF
     ${Geant4_LIBRARIES}
-    ROOT::Core
-    ROOT::Hist
-    ROOT::RIO
 )
 
 add_executable(testG4analysis testG4analysis.cc)

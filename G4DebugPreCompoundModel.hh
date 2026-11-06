@@ -3,8 +3,7 @@
 #include "G4SystemOfUnits.hh"
 
 
-#include "TH1D.h"
-#include "TFile.h"
+#include "G4AnalysisManager.hh"
 
 
 class G4DebugPreCompoundModel : public G4PreCompoundModel
@@ -14,7 +13,46 @@ public:
     explicit G4DebugPreCompoundModel(
         G4ExcitationHandler* ptr = nullptr)
       : G4PreCompoundModel(ptr)
-    {}
+    {
+        auto ana = G4AnalysisManager::Instance();
+
+        hEexcPrecoID = ana->CreateH1(
+            "hEexcPreco", "Excitation energy of remnant (Before PreEq);E* (GeV);Events",
+            200, 0., 20);
+
+        hEexcDeexID = ana->CreateH1(
+            "hEexcDeex", "Excitation energy of remnant (Before Equilibrium);E* (GeV);Events",
+            200, 0., 20);
+
+        hAEexcPrecoID = ana->CreateH1(
+            "hAEexcPreco", "Excitation energy of remnant (Before PreEq);E*/A (MeV);Events",
+            200, 0., 50);
+
+        hAEexcDeexID = ana->CreateH1(
+            "hAEexcDeex", "Excitation energy of remnant (Before Equilibrium);E*/A (MeV);Events",
+            200, 0., 50);
+
+        hAEexcDeexNoprecoID = ana->CreateH1(
+            "hAEexcDeexNopreco", "Excitation energy of remnant (Before Equilibrium AND skipped preco);E*/A (MeV);Events",
+            200, 0., 50);
+
+        hAprecoID = ana->CreateH1(
+            "hApreco", "Residual atomic mass A (Before PreEq);   A;Events",
+            250, 0., 250);
+
+        hZprecoID = ana->CreateH1(
+            "hZpreco", "Residual element number Z (Before PreEq);   Z;Events",
+            100, 0., 100);
+
+        hAdeexID = ana->CreateH1(
+            "hAdeex", "Residual atomic mass A (Before Equilibrium);   A;Events",
+            250, 0., 250);
+
+        hZdeexID = ana->CreateH1(
+            "hZdeex", "Residual element number Z (Before Equilibrium);   Z;Events",
+            100, 0., 100);
+
+    }
 
     G4ReactionProductVector*
     DeExcite(G4Fragment& fragment) override;
@@ -23,26 +61,17 @@ protected:
                                            G4ReactionProductVector* result) const override;
 
 public:
-    TH1D* hEexcPreco = new TH1D("hEexcPreco", "Excitation energy of remnant (Before PreEq);E* (GeV);Events",
-                            200, 0., 20);
-    TH1D* hEexcDeex = new TH1D("hEexcDeex", "Excitation energy of remnant (Before Equilibrium);E* (GeV);Events",
-                            200, 0., 20);
+    G4int hEexcPrecoID;
+    G4int hEexcDeexID;
 
-    TH1D* hAEexcPreco = new TH1D("hAEexcPreco", "Excitation energy of remnant (Before PreEq);E*/A (MeV);Events",
-                            200, 0., 50);
-    TH1D* hAEexcDeex = new TH1D("hAEexcDeex", "Excitation energy of remnant (Before Equilibrium);E*/A (MeV);Events",
-                            200, 0., 50);
-    TH1D* hAEexcDeexNopreco = new TH1D("hAEexcDeexNopreco", "Excitation energy of remnant (Before Equilibrium AND skipped preco);E*/A (MeV);Events",
-                            200, 0., 50);
+    G4int hAEexcPrecoID;
+    G4int hAEexcDeexID;
+    G4int hAEexcDeexNoprecoID;
 
-    TH1D* hApreco = new TH1D("hApreco", "Residual atomic mass A (Before PreEq);   A;Events",
-                            250, 0., 250);
-    TH1D* hZpreco = new TH1D("hZpreco", "Residual element number Z (Before PreEq);   Z;Events",
-                            100, 0., 100);
-    TH1D* hAdeex = new TH1D("hAdeex", "Residual atomic mass A (Before Equilibrium);   A;Events",
-                            250, 0., 250);
-    TH1D* hZdeex = new TH1D("hZdeex", "Residual element number Z (Before Equilibrium);   Z;Events",
-                            100, 0., 100);
+    G4int hAprecoID;
+    G4int hZprecoID;
+    G4int hAdeexID;
+    G4int hZdeexID;
 
 
 };
@@ -77,10 +106,11 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
     //        << "E* = " << U / MeV << " MeV\n"
     //        << "E*/A = " << U / A / MeV << " MeV/nucleon\n"
     //        << "=======================\n";
-    hEexcPreco->Fill(U / GeV);
-    hAEexcPreco->Fill(U / A / MeV);
-    hApreco->Fill(A);
-    hZpreco->Fill(Z);
+    auto ana = G4AnalysisManager::Instance();
+    ana->FillH1(hEexcPrecoID, U / GeV);
+    ana->FillH1(hAEexcPrecoID, U / A / MeV);
+    ana->FillH1(hAprecoID, A);
+    ana->FillH1(hZprecoID, Z);
 
 
     // if (!isActive)
@@ -116,7 +146,7 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
         //        << "E* = " << U / MeV << " MeV\n"
         //        << "E*/A = " << U / A / MeV << " MeV/nucleon\n"
         //        << "====================================\n";
-        hAEexcDeexNopreco->Fill(U / A / MeV);
+        ana->FillH1(hAEexcDeexNoprecoID, U / A / MeV);
         PerformEquilibriumEmission(aFragment, result);
         return result;
     }
@@ -165,10 +195,11 @@ void G4DebugPreCompoundModel::PerformEquilibriumEmission(
     G4double U_GeV = aFragment.GetExcitationEnergy()/GeV;
     G4int A = aFragment.GetA_asInt();
     G4int Z = aFragment.GetZ_asInt();
-    hEexcDeex->Fill(U_GeV);
-    hAEexcDeex->Fill(1000*U_GeV/A);
-    hAdeex->Fill(A);
-    hZdeex->Fill(Z);
+    auto ana = G4AnalysisManager::Instance();
+    ana->FillH1(hEexcDeexID, U_GeV);
+    ana->FillH1(hAEexcDeexID, 1000*U_GeV/A);
+    ana->FillH1(hAdeexID, A);
+    ana->FillH1(hZdeexID, Z);
     G4PreCompoundModel::PerformEquilibriumEmission(
         aFragment, result);
 }

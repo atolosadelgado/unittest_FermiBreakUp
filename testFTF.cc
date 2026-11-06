@@ -40,6 +40,8 @@ void BuildFTF(std::unique_ptr<G4TheoFSGenerator>       & theogen,
 
 void InitializeParticles();
 
+#include "G4AnalysisManager.hh"
+
 struct InputParameters
 {
     int targetMassNumberA = 208;
@@ -97,6 +99,9 @@ int main(int argc, char* argv[])
     output_filename += (std::to_string(nEvents) + "evts");
     output_filename += ".root";
 
+    auto ana = G4AnalysisManager::Instance();
+    ana->OpenFile(output_filename);
+
     int nEvents4printout = nEvents/10;
     // Random engine
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
@@ -146,20 +151,8 @@ int main(int argc, char* argv[])
             G4cout << "Progress... " << 100*i/nEvents << "%" << G4endl;
     }
 
-    TFile* file = new TFile(output_filename.c_str(), "update");
-    precompound->hEexcPreco->Write();
-    precompound->hEexcDeex->Write();
-    precompound->hAEexcPreco->Write();
-    precompound->hAEexcDeex->Write();
-    precompound->hAEexcDeexNopreco->Write();
-
-    precompound->hApreco->Write();
-    precompound->hZpreco->Write();
-    precompound->hAdeex->Write();
-    precompound->hZdeex->Write();
-    file->Close();
-
-    delete file;
+    ana->Write();
+    ana->CloseFile();
     return 0;
 }
 
