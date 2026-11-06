@@ -20,10 +20,13 @@ add_executable(testFTF testFTF.cc)
 
 target_link_libraries(testFTF
     ${Geant4_LIBRARIES}
-)
-target_link_libraries(testFTF
-    ${Geant4_LIBRARIES}
     ROOT::Core
     ROOT::Hist
     ROOT::RIO
+)
+
+add_executable(testG4analysis testG4analysis.cc)
+
+target_link_libraries(testG4analysis
+    ${Geant4_LIBRARIES}
 )
