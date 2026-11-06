@@ -35,6 +35,16 @@ public:
     TH1D* hAEexcEquilibriumOutsideLimit = new TH1D("hAEexcEquilibriumULimit", "Equilibrium excitation energy outside PreEquilibrium limits;E*/A (MeV);Events",
                             200, 0., 50);
 
+    TH1D* hApreco = new TH1D("hApreco", "Residual atomic massr A (Before PreEq);   A;Events",
+                            250, 0., 250);
+    TH1D* hZpreco = new TH1D("hZpreco", "Residual element number Z (Before PreEq);   Z;Events",
+                            100, 0., 100);
+    TH1D* hAdeex = new TH1D("hAdeex", "Residual atomic massr A (Before Equilibrium);   A;Events",
+                            250, 0., 250);
+    TH1D* hZdeex = new TH1D("hZdeex", "Residual element number Z (Before Equilibrium);   Z;Events",
+                            100, 0., 100);
+
+
 };
 
 #include "G4PreCompoundInterface.hh"
@@ -69,6 +79,8 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
     //        << "=======================\n";
     hEexcFTFremnant->Fill(U / GeV);
     hAEexcFTFremnant->Fill(U / A / MeV);
+    hApreco->Fill(A);
+    hZpreco->Fill(Z);
 
 
     // if (!isActive)
@@ -153,8 +165,11 @@ void G4DebugPreCompoundModel::PerformEquilibriumEmission(
     //        << " MeV" << G4endl;
     G4double U_GeV = aFragment.GetExcitationEnergy()/GeV;
     G4int A = aFragment.GetA_asInt();
+    G4int Z = aFragment.GetZ_asInt();
     hEexcEquilibrium->Fill(U_GeV);
     hAEexcEquilibrium->Fill(1000*U_GeV/A);
+    hAdeex->Fill(A);
+    hZdeex->Fill(Z);
     G4PreCompoundModel::PerformEquilibriumEmission(
         aFragment, result);
 }

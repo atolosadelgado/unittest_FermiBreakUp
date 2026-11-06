@@ -18,14 +18,16 @@
 #include "G4ExcitedStringDecay.hh"
 #include "G4LundStringFragmentation.hh"
 #include "G4GeneratorPrecompoundInterface.hh"
+#include "G4BinaryCascade.hh"
 #include "G4PreCompoundModel.hh"
 #include "G4ExcitationHandler.hh"
 
 // custom precompound
 #include "G4DebugPreCompoundModel.hh"
 
-void BuildFTFP(std::unique_ptr<G4TheoFSGenerator>       & ftfp,
-               std::unique_ptr<G4DebugPreCompoundModel> & precompound);
+void BuildFTF(std::unique_ptr<G4TheoFSGenerator>       & theogen,
+              std::unique_ptr<G4DebugPreCompoundModel> & precompound,
+              std::string theogenName);
 
 // Headers to initialize particles
 #include "G4DecayPhysics.hh"
@@ -48,11 +50,11 @@ int main()
     int targetAtomicNumberZ = 82;
     double projectileEnergyGeV = 100;
     std::string projectileName = "proton";
-    std::string theoGenerator = "FTFP";
+    std::string theoGeneratorName = "FTFP";
     int nEvents = 1000;
 
     std::string output_filename("test_");
-    output_filename += theoGenerator;
+    output_filename += theoGeneratorName;
     output_filename += "_";
     output_filename += (std::to_string(targetMassNumberA) + "A");
     output_filename += "_";
@@ -100,16 +102,16 @@ int main()
     // Initialize FTFP
     std::unique_ptr<G4TheoFSGenerator> ftfp;
     std::unique_ptr<G4DebugPreCompoundModel> precompound;
-    BuildFTFP(ftfp,precompound);
+    BuildFTF(ftfp,precompound, theoGeneratorName);
 
     for(int i =0; i<nEvents; ++i)
-    {    // Generate interaction
+    {
+        // Generate interaction
         G4HadFinalState* finalState =
         ftfp->ApplyYourself(projectile, target);
 
         if( i%nEvents4printout ==0 )
             G4cout << "Progress... " << 100*i/nEvents << "%" << G4endl;
-        // G4cerr << std::flush;
     }
 
     TFile* file = new TFile(output_filename.c_str(), "update");
@@ -118,6 +120,11 @@ int main()
     precompound->hAEexcFTFremnant->Write();
     precompound->hAEexcEquilibrium->Write();
     precompound->hAEexcEquilibriumOutsideLimit->Write();
+
+    precompound->hApreco->Write();
+    precompound->hZpreco->Write();
+    precompound->hAdeex->Write();
+    precompound->hZdeex->Write();
     file->Close();
 
     delete file;
@@ -128,35 +135,43 @@ int main()
 void InitializeParticles()
 {
 
+    // Define generic ion
+    auto* gion = G4GenericIon::Definition();
+    gion->SetProcessManager(new G4ProcessManager(gion));
 
-// Define generic ion
-auto* gion = G4GenericIon::Definition();
-gion->SetProcessManager(new G4ProcessManager(gion));
+    // Define standard particles
+    auto* decays = new G4DecayPhysics;
+    decays->ConstructParticle();
 
-// Define standard particles
-auto* decays = new G4DecayPhysics;
-decays->ConstructParticle();
+    // Mark particle table as ready
+    auto* particleTable = G4ParticleTable::GetParticleTable();
+    particleTable->SetReadiness();
 
-// Mark particle table as ready
-auto* particleTable = G4ParticleTable::GetParticleTable();
-particleTable->SetReadiness();
-
-// Initialize ions
-auto* ions = particleTable->GetIonTable();
-ions->CreateAllIon();
-ions->CreateAllIsomer();
+    // Initialize ions
+    auto* ions = particleTable->GetIonTable();
+    ions->CreateAllIon();
+    ions->CreateAllIsomer();
 
 }
 
 
-void BuildFTFP(std::unique_ptr<G4TheoFSGenerator>& ftfp,
-               std::unique_ptr<G4DebugPreCompoundModel>& precompound)
+void BuildFTF(std::unique_ptr<G4TheoFSGenerator>& theogen,
+               std::unique_ptr<G4DebugPreCompoundModel>& precompound,
+               std::string theogenName)
 {
     auto* excitationHandler = new G4ExcitationHandler;
 
     precompound = std::make_unique<G4DebugPreCompoundModel>(excitationHandler);
 
-    auto* transport = new G4GeneratorPrecompoundInterface;
+    G4VIntraNuclearTransportModel *transport = nullptr;
+    if("FTFP" == theogenName)
+        transport = new G4GeneratorPrecompoundInterface;
+    else if ("FTFB" == theogenName)
+        transport = new G4BinaryCascade;
+    else{
+        throw std::runtime_error("Theo generator name <" + theogenName + ">not known");
+    }
+
     transport->SetDeExcitation(precompound.get());
 
     auto* fragmentation = new G4LundStringFragmentation;
@@ -165,8 +180,9 @@ void BuildFTFP(std::unique_ptr<G4TheoFSGenerator>& ftfp,
     auto* ftf = new G4FTFModel;
     ftf->SetFragmentationModel(stringDecay);
 
-    ftfp = std::make_unique<G4TheoFSGenerator>("FTFP");
+    theogen = std::make_unique<G4TheoFSGenerator>(theogenName);
 
-    ftfp->SetHighEnergyGenerator(ftf);
-    ftfp->SetTransport(transport);
+    theogen->SetHighEnergyGenerator(ftf);
+    theogen->SetTransport(transport);
 }
+
