@@ -23,23 +23,23 @@ protected:
                                            G4ReactionProductVector* result) const override;
 
 public:
-    TH1D* hEexcFTFremnant = new TH1D("hEexcFTFremnant", "FTF wounded nucleus (after dummy INC) excitation energy;E* (GeV);Events",
+    TH1D* hEexcPreco = new TH1D("hEexcPreco", "Excitation energy of remnant (Before PreEq);E* (GeV);Events",
                             200, 0., 20);
-    TH1D* hEexcEquilibrium = new TH1D("hEexcEquilibrium", "Equilibrium excitation energy;E* (GeV);Events",
+    TH1D* hEexcDeex = new TH1D("hEexcDeex", "Excitation energy of remnant (Before Equilibrium);E* (GeV);Events",
                             200, 0., 20);
 
-    TH1D* hAEexcFTFremnant = new TH1D("hAEexcFTFremnant", "FTF wounded nucleus (after dummy INC) excitation energy;E*/A (MeV);Events",
+    TH1D* hAEexcPreco = new TH1D("hAEexcPreco", "Excitation energy of remnant (Before PreEq);E*/A (MeV);Events",
                             200, 0., 50);
-    TH1D* hAEexcEquilibrium = new TH1D("hAEexcEquilibrium", "Equilibrium excitation energy;E*/A (MeV);Events",
+    TH1D* hAEexcDeex = new TH1D("hAEexcDeex", "Excitation energy of remnant (Before Equilibrium);E*/A (MeV);Events",
                             200, 0., 50);
-    TH1D* hAEexcEquilibriumOutsideLimit = new TH1D("hAEexcEquilibriumULimit", "Equilibrium excitation energy outside PreEquilibrium limits;E*/A (MeV);Events",
+    TH1D* hAEexcDeexNopreco = new TH1D("hAEexcDeexNopreco", "Excitation energy of remnant (Before Equilibrium AND skipped preco);E*/A (MeV);Events",
                             200, 0., 50);
 
-    TH1D* hApreco = new TH1D("hApreco", "Residual atomic massr A (Before PreEq);   A;Events",
+    TH1D* hApreco = new TH1D("hApreco", "Residual atomic mass A (Before PreEq);   A;Events",
                             250, 0., 250);
     TH1D* hZpreco = new TH1D("hZpreco", "Residual element number Z (Before PreEq);   Z;Events",
                             100, 0., 100);
-    TH1D* hAdeex = new TH1D("hAdeex", "Residual atomic massr A (Before Equilibrium);   A;Events",
+    TH1D* hAdeex = new TH1D("hAdeex", "Residual atomic mass A (Before Equilibrium);   A;Events",
                             250, 0., 250);
     TH1D* hZdeex = new TH1D("hZdeex", "Residual element number Z (Before Equilibrium);   Z;Events",
                             100, 0., 100);
@@ -77,8 +77,8 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
     //        << "E* = " << U / MeV << " MeV\n"
     //        << "E*/A = " << U / A / MeV << " MeV/nucleon\n"
     //        << "=======================\n";
-    hEexcFTFremnant->Fill(U / GeV);
-    hAEexcFTFremnant->Fill(U / A / MeV);
+    hEexcPreco->Fill(U / GeV);
+    hAEexcPreco->Fill(U / A / MeV);
     hApreco->Fill(A);
     hZpreco->Fill(Z);
 
@@ -116,8 +116,7 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
         //        << "E* = " << U / MeV << " MeV\n"
         //        << "E*/A = " << U / A / MeV << " MeV/nucleon\n"
         //        << "====================================\n";
-        if (U < fLowLimitExc * A || U > fHighLimitExc * A)
-          hAEexcEquilibriumOutsideLimit->Fill(U / A / MeV);
+        hAEexcDeexNopreco->Fill(U / A / MeV);
         PerformEquilibriumEmission(aFragment, result);
         return result;
     }
@@ -166,8 +165,8 @@ void G4DebugPreCompoundModel::PerformEquilibriumEmission(
     G4double U_GeV = aFragment.GetExcitationEnergy()/GeV;
     G4int A = aFragment.GetA_asInt();
     G4int Z = aFragment.GetZ_asInt();
-    hEexcEquilibrium->Fill(U_GeV);
-    hAEexcEquilibrium->Fill(1000*U_GeV/A);
+    hEexcDeex->Fill(U_GeV);
+    hAEexcDeex->Fill(1000*U_GeV/A);
     hAdeex->Fill(A);
     hZdeex->Fill(Z);
     G4PreCompoundModel::PerformEquilibriumEmission(

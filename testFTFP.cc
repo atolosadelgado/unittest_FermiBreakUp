@@ -48,9 +48,9 @@ int main()
 
     int targetMassNumberA = 208;
     int targetAtomicNumberZ = 82;
-    double projectileEnergyGeV = 100;
+    double projectileEnergyGeV = 2;
     std::string projectileName = "proton";
-    std::string theoGeneratorName = "FTFP";
+    std::string theoGeneratorName = "FTFB";
     int nEvents = 1000;
 
     std::string output_filename("test_");
@@ -115,11 +115,11 @@ int main()
     }
 
     TFile* file = new TFile(output_filename.c_str(), "update");
-    precompound->hEexcFTFremnant->Write();
-    precompound->hEexcEquilibrium->Write();
-    precompound->hAEexcFTFremnant->Write();
-    precompound->hAEexcEquilibrium->Write();
-    precompound->hAEexcEquilibriumOutsideLimit->Write();
+    precompound->hEexcPreco->Write();
+    precompound->hEexcDeex->Write();
+    precompound->hAEexcPreco->Write();
+    precompound->hAEexcDeex->Write();
+    precompound->hAEexcDeexNopreco->Write();
 
     precompound->hApreco->Write();
     precompound->hZpreco->Write();
