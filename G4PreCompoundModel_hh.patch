@@ -1,0 +1,18 @@
+diff --git a/source/processes/hadronic/models/pre_equilibrium/exciton_model/include/G4PreCompoundModel.hh b/source/processes/hadronic/models/pre_equilibrium/exciton_model/include/G4PreCompoundModel.hh
+index 9cb8656d096..7cd3bd9c0a5 100644
+--- a/source/processes/hadronic/models/pre_equilibrium/exciton_model/include/G4PreCompoundModel.hh
++++ b/source/processes/hadronic/models/pre_equilibrium/exciton_model/include/G4PreCompoundModel.hh
+@@ -86,11 +86,11 @@ class G4PreCompoundModel : public G4VPreCompoundModel
+     G4bool operator==(const G4PreCompoundModel& right) const = delete;
+     G4bool operator!=(const G4PreCompoundModel& right) const = delete;
+ 
+-  private:
++  protected:
+ 
+     void DoIt(G4ReactionProductVector* result, G4Fragment&);
+ 
+-    inline void PerformEquilibriumEmission(const G4Fragment& aFragment,
++    virtual void PerformEquilibriumEmission(const G4Fragment& aFragment,
+                                            G4ReactionProductVector* result) const;
+ 
+     G4PreCompoundInterface* fInterface{nullptr};
