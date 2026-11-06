@@ -16,12 +16,12 @@ target_link_libraries(testFermiBreakUp
     ${Geant4_LIBRARIES}
 )
 
-add_executable(testFTFP testFTFP.cc)
+add_executable(testFTF testFTF.cc)
 
-target_link_libraries(testFTFP
+target_link_libraries(testFTF
     ${Geant4_LIBRARIES}
 )
-target_link_libraries(testFTFP
+target_link_libraries(testFTF
     ${Geant4_LIBRARIES}
     ROOT::Core
     ROOT::Hist
