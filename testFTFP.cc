@@ -20,7 +20,12 @@
 #include "G4GeneratorPrecompoundInterface.hh"
 #include "G4PreCompoundModel.hh"
 #include "G4ExcitationHandler.hh"
-G4TheoFSGenerator* BuildFTFP();
+
+// custom precompound
+#include "G4DebugPreCompoundModel.hh"
+
+void BuildFTFP(std::unique_ptr<G4TheoFSGenerator>       & ftfp,
+               std::unique_ptr<G4DebugPreCompoundModel> & precompound);
 
 // Headers to initialize particles
 #include "G4DecayPhysics.hh"
@@ -29,8 +34,6 @@ G4TheoFSGenerator* BuildFTFP();
 #include "G4ProcessManager.hh"
 #include "G4IonTable.hh"
 
-// custom precompound
-#include "G4DebugPreCompoundModel.hh"
 
 #include "G4NuclearLevelData.hh"
 #include "G4DeexPrecoParameters.hh"
@@ -40,6 +43,9 @@ void InitializeParticles();
 
 int main()
 {
+
+    int nEvents = 1000;
+    int nEvents4printout = nEvents/10;
     // Random engine
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
     G4Random::setTheSeed(123456);
@@ -70,51 +76,26 @@ int main()
     target.SetParameters(208, 82);
 
     // Initialize FTFP
-    std::unique_ptr<G4TheoFSGenerator> ftfp(BuildFTFP());
+    std::unique_ptr<G4TheoFSGenerator> ftfp;
+    std::unique_ptr<G4DebugPreCompoundModel> precompound;
+    BuildFTFP(ftfp,precompound);
 
-    for(int i =0; i<20000; ++i)
+    for(int i =0; i<nEvents; ++i)
     {    // Generate interaction
         G4HadFinalState* finalState =
         ftfp->ApplyYourself(projectile, target);
 
-        // G4cout << "End iteration = " << i << G4endl;
+        if( i%nEvents4printout ==0 )
+            G4cout << "Progress... " << 100*i/nEvents << "%" << G4endl;
         // G4cerr << std::flush;
-
     }
-    // auto nucleons = ftfp->GetHighEnergyGenerator()->GetWoundedNucleus()->GetNucleons();
-    // std::cout << "number of nucleons " << nucleons.size() << std::endl;
-    // auto * ftfmodel = static_cast<const G4FTFModel*>(ftfp->GetHighEnergyGenerator());
-    // std::cout << "GetNumberOfTargetSpectatorNucleons " << ftfmodel->GetNumberOfTargetSpectatorNucleons() << std::endl;
-    // std::cout << "GetNumberOfNNcollisions " << ftfmodel->GetNumberOfNNcollisions() << std::endl;
 
-    // auto * preco = static_cast<const G4GeneratorPrecompoundInterface*>(ftfp->GetTransport());
-    // preco->Ge
-
-    // Print secondaries
-    // std::cout << "\nFinal state:\n";
-    //
-    // for (G4int i = 0;
-    //      i < finalState->GetNumberOfSecondaries(); ++i)
-    // {
-    //     auto* particle = finalState->GetSecondary(i)->GetParticle();
-    //
-    //     std::cout
-    //         << particle->GetDefinition()->GetParticleName()
-    //         << "  "
-    //         << particle->GetKineticEnergy() / GeV
-    //         << " GeV\n";
-    // }
-    //
-    // std::cout << "\nNumber of secondaries: "
-    //           << finalState->GetNumberOfSecondaries()
-    //           << std::endl;
-
-    TFile* file = new TFile("output.root", "RECREATE");
-    hEexcFTFremnant->Write();
-    hEexcEquilibrium->Write();
-    hAEexcFTFremnant->Write();
-    hAEexcEquilibrium->Write();
-    hAEexcEquilibriumOutsideLimit->Write();
+    TFile* file = new TFile("output2.root", "RECREATE");
+    precompound->hEexcFTFremnant->Write();
+    precompound->hEexcEquilibrium->Write();
+    precompound->hAEexcFTFremnant->Write();
+    precompound->hAEexcEquilibrium->Write();
+    precompound->hAEexcEquilibriumOutsideLimit->Write();
     file->Close();
 
     delete file;
@@ -145,33 +126,25 @@ ions->CreateAllIsomer();
 
 }
 
-G4TheoFSGenerator* BuildFTFP()
+
+void BuildFTFP(std::unique_ptr<G4TheoFSGenerator>& ftfp,
+               std::unique_ptr<G4DebugPreCompoundModel>& precompound)
 {
     auto* excitationHandler = new G4ExcitationHandler;
 
-    auto* precompound =
-        // new G4PreCompoundModel(excitationHandler);
-        new G4DebugPreCompoundModel(excitationHandler);
+    precompound = std::make_unique<G4DebugPreCompoundModel>(excitationHandler);
 
-    auto* transport =
-        new G4GeneratorPrecompoundInterface;
+    auto* transport = new G4GeneratorPrecompoundInterface;
+    transport->SetDeExcitation(precompound.get());
 
-    transport->SetDeExcitation(precompound);
-
-    auto* fragmentation =
-        new G4LundStringFragmentation;
-
-    auto* stringDecay =
-        new G4ExcitedStringDecay(fragmentation);
+    auto* fragmentation = new G4LundStringFragmentation;
+    auto* stringDecay = new G4ExcitedStringDecay(fragmentation);
 
     auto* ftf = new G4FTFModel;
-
     ftf->SetFragmentationModel(stringDecay);
 
-    auto* ftfp = new G4TheoFSGenerator("FTFP");
+    ftfp = std::make_unique<G4TheoFSGenerator>("FTFP");
 
     ftfp->SetHighEnergyGenerator(ftf);
     ftfp->SetTransport(transport);
-
-    return ftfp;
 }

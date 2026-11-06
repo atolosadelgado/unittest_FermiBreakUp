@@ -6,17 +6,6 @@
 #include "TH1D.h"
 #include "TFile.h"
 
-TH1D* hEexcFTFremnant = new TH1D("hEexcFTFremnant", "FTF wounded nucleus (after dummy INC) excitation energy;E* (GeV);Events",
-                        200, 0., 20);
-TH1D* hEexcEquilibrium = new TH1D("hEexcEquilibrium", "Equilibrium excitation energy;E* (GeV);Events",
-                        200, 0., 20);
-
-TH1D* hAEexcFTFremnant = new TH1D("hAEexcFTFremnant", "FTF wounded nucleus (after dummy INC) excitation energy;E*/A (MeV);Events",
-                        200, 0., 50);
-TH1D* hAEexcEquilibrium = new TH1D("hAEexcEquilibrium", "Equilibrium excitation energy;E*/A (MeV);Events",
-                        200, 0., 50);
-TH1D* hAEexcEquilibriumOutsideLimit = new TH1D("hAEexcEquilibriumULimit", "Equilibrium excitation energy outside PreEquilibrium limits;E*/A (MeV);Events",
-                        200, 0., 50);
 
 class G4DebugPreCompoundModel : public G4PreCompoundModel
 {
@@ -32,6 +21,20 @@ public:
 protected:
     void PerformEquilibriumEmission(const G4Fragment& aFragment,
                                            G4ReactionProductVector* result) const override;
+
+public:
+    TH1D* hEexcFTFremnant = new TH1D("hEexcFTFremnant", "FTF wounded nucleus (after dummy INC) excitation energy;E* (GeV);Events",
+                            200, 0., 20);
+    TH1D* hEexcEquilibrium = new TH1D("hEexcEquilibrium", "Equilibrium excitation energy;E* (GeV);Events",
+                            200, 0., 20);
+
+    TH1D* hAEexcFTFremnant = new TH1D("hAEexcFTFremnant", "FTF wounded nucleus (after dummy INC) excitation energy;E*/A (MeV);Events",
+                            200, 0., 50);
+    TH1D* hAEexcEquilibrium = new TH1D("hAEexcEquilibrium", "Equilibrium excitation energy;E*/A (MeV);Events",
+                            200, 0., 50);
+    TH1D* hAEexcEquilibriumOutsideLimit = new TH1D("hAEexcEquilibriumULimit", "Equilibrium excitation energy outside PreEquilibrium limits;E*/A (MeV);Events",
+                            200, 0., 50);
+
 };
 
 #include "G4PreCompoundInterface.hh"
