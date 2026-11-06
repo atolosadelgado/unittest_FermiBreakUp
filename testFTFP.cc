@@ -2,7 +2,6 @@
 #include "G4HadFinalState.hh"
 #include "G4Nucleus.hh"
 #include "G4DynamicParticle.hh"
-#include "G4Proton.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 #include "G4HadronicParameters.hh"
@@ -11,6 +10,8 @@
 
 #include <iostream>
 #include <memory>
+#include <string>
+#include <cstdlib>
 
 //----
 #include "G4TheoFSGenerator.hh"
@@ -21,7 +22,8 @@
 #include "G4BinaryCascade.hh"
 #include "G4PreCompoundModel.hh"
 #include "G4ExcitationHandler.hh"
-
+#include "G4NuclearLevelData.hh"
+#include "G4DeexPrecoParameters.hh"
 // custom precompound
 #include "G4DebugPreCompoundModel.hh"
 
@@ -36,22 +38,52 @@ void BuildFTF(std::unique_ptr<G4TheoFSGenerator>       & theogen,
 #include "G4ProcessManager.hh"
 #include "G4IonTable.hh"
 
-
-#include "G4NuclearLevelData.hh"
-#include "G4DeexPrecoParameters.hh"
-
-
 void InitializeParticles();
 
-int main()
+struct InputParameters
 {
-
     int targetMassNumberA = 208;
     int targetAtomicNumberZ = 82;
-    double projectileEnergyGeV = 2;
+    double projectileEnergyGeV = 2.0;
     std::string projectileName = "proton";
     std::string theoGeneratorName = "FTFB";
     int nEvents = 1000;
+
+    InputParameters(int argc, char* argv[])
+    {
+        if (argc > 1) targetMassNumberA = std::atoi(argv[1]);
+        if (argc > 2) targetAtomicNumberZ = std::atoi(argv[2]);
+        if (argc > 3) projectileEnergyGeV = std::atof(argv[3]);
+        if (argc > 4) projectileName = argv[4];
+        if (argc > 5) theoGeneratorName = argv[5];
+        if (argc > 6) nEvents = std::atoi(argv[6]);
+    }
+    void Show(){
+        std::cout << "---------------------------------" << std::endl;
+        std::cout << "Input parameters:\n";
+        std::cout << "\tTarget A = "   << targetMassNumberA << '\n';
+        std::cout << "\tTarget Z = "   << targetAtomicNumberZ << '\n';
+        std::cout << "\tEnergy = "     << projectileEnergyGeV << " GeV\n";
+        std::cout << "\tProjectile = " << projectileName << '\n';
+        std::cout << "\tModel = "      << theoGeneratorName << '\n';
+        std::cout << "\tEvents = "     << nEvents << '\n';
+        std::cout << "---------------------------------" << std::endl;
+    }
+};
+
+
+int main(int argc, char* argv[])
+{
+
+    InputParameters input(argc, argv);
+    input.Show();
+
+    int targetMassNumberA = input.targetMassNumberA;
+    int targetAtomicNumberZ = input.targetAtomicNumberZ;
+    double projectileEnergyGeV = input.projectileEnergyGeV;
+    std::string projectileName = input.projectileName;
+    std::string theoGeneratorName = input.theoGeneratorName;
+    int nEvents = input.nEvents;
 
     std::string output_filename("test_");
     output_filename += theoGeneratorName;
