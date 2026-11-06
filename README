@@ -1,0 +1,36 @@
+# Hadronic physics unit tests
+
+## Test of Fermi Breakup
+
+The `testFermiBreakUp` application exercises the Fermi Breakup models standalone. To do so, the Fermi Breakup model is called to de-excite a fixed excited nucleus (A, Z, E*). Two models are currently available: AN and VI.
+
+The code is split into the following files:
+
+* `testFermiBreakUp.cc`: main program that exercises the model.
+* `InputParser.hh`: ancillary class to process the input arguments: `<A> <Z> <ExcitationEnergyMeV> <FermiBreakUpModel> <nEvents>`.
+* `FragmentStatistics.hh`: class to accumulate the mean and RMS of selected quantities, as well as the population of produced fragments, for later comparison. Output is provided in text format.
+
+**Limitation:** we are using a fixed excitation energy, but a priori we do not know which excitation energies are typically passed to this model by FTFP, for instance. To investigate the excitation energy spectrum of the nuclear fragments passed to de-excitation, the following example has been developed.
+
+## Nuclear excitation energy after the String model
+
+The `testFTFP` application exercises the FTF model with a given projectile, energy and target (currently hardcoded to a 100 GeV proton on 208Pb).
+
+The transport model (INC stage) was set to P, corresponding to the `G4GeneratorPrecompoundInterface`, which traps low-energy excited nucleons inside the nucleus and kicks out the most excited ones. This interface is coupled to `G4DebugPreCompoundModel`.
+
+`G4DebugPreCompoundModel` derives from `G4PreCompoundModel` and intercepts calls to the precompound and de-excitation stages (in particular, the `PerformEquilibriumEmission` method) to collect fragment information before calling the corresponding base-class methods, allowing the original workflow to continue.
+
+However, two changes to the Geant4 source code were required to implement this approach, both in `G4PreCompoundModel.hh`:
+
+* Change the `private` access specifier to `protected` within the class, so that derived classes can access these members and methods.
+* Add the `virtual` specifier to `PerformEquilibriumEmission`.
+
+Both changes are intended to allow derived classes to intercept internal methods (i.e. methods not originally exposed as virtual extension points) involved in the de-excitation workflow. This could potentially motivate providing a more explicit way for derived classes to intercept calls to the de-excitation handler in the future.
+
+The changes are provided in the file `G4PreCompoundModel_hh.patch`.
+
+**TODO:** extend this example to other materials and projectile energies, e.g. scintillator, silicon, argon, iron, copper, tungsten and lead; 10 and 100 GeV; and try different projectiles (neutrons, protons and pions).
+
+## Unit test for de-excitation
+
+**TODO:** develop a unit test to exercise `G4ExcitationHandler`, `G4Abla` and the FLUKA de-excitation modules.
