@@ -5,6 +5,7 @@
 
 #include "G4AnalysisManager.hh"
 
+#include "HadronicEventTuple.hh"
 
 class G4DebugPreCompoundModel : public G4PreCompoundModel
 {
@@ -52,6 +53,7 @@ public:
             "hZdeex", "Residual element number Z (Before Equilibrium);   Z;Events",
             100, 0., 100);
 
+        tuple = std::make_unique<HadronicEventTuple>();
     }
 
     G4ReactionProductVector*
@@ -72,6 +74,8 @@ public:
     G4int hZprecoID;
     G4int hAdeexID;
     G4int hZdeexID;
+
+    std::unique_ptr<HadronicEventTuple> tuple;
 
 
 };
@@ -111,6 +115,10 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
     ana->FillH1(hAEexcPrecoID, U / A / MeV);
     ana->FillH1(hAprecoID, A);
     ana->FillH1(hZprecoID, Z);
+
+    ana->FillNtupleIColumn( tuple->ids.Arem, A );
+    ana->FillNtupleIColumn( tuple->ids.Zrem, Z );
+    ana->FillNtupleDColumn( tuple->ids.Eexc, U/MeV );
 
 
     // if (!isActive)
