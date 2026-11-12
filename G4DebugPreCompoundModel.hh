@@ -116,10 +116,12 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
     ana->FillH1(hAprecoID, A);
     ana->FillH1(hZprecoID, Z);
 
-    ana->FillNtupleIColumn( tuple->ids.Arem, A );
-    ana->FillNtupleIColumn( tuple->ids.Zrem, Z );
-    ana->FillNtupleDColumn( tuple->ids.Eexc, U/MeV );
-
+    ana->FillNtupleIColumn( tuple->ids.AremPreco, A );
+    ana->FillNtupleIColumn( tuple->ids.ZremPreco, Z );
+    ana->FillNtupleDColumn( tuple->ids.EexcPreco, U/MeV );
+    ana->FillNtupleIColumn( tuple->ids.NexcPreco, aFragment.GetNumberOfExcitons() );
+    ana->FillNtupleIColumn( tuple->ids.NparPreco, aFragment.GetNumberOfParticles() );
+    ana->FillNtupleIColumn( tuple->ids.NholPreco, aFragment.GetNumberOfHoles() );
 
     // if (!isActive)
     //     G4cout << "Skipping: inactive" << G4endl;
@@ -200,14 +202,23 @@ void G4DebugPreCompoundModel::PerformEquilibriumEmission(
     // G4cout << "E* = "
     //        << aFragment.GetExcitationEnergy()/MeV
     //        << " MeV" << G4endl;
-    G4double U_GeV = aFragment.GetExcitationEnergy()/GeV;
+    G4double U = aFragment.GetExcitationEnergy();
     G4int A = aFragment.GetA_asInt();
     G4int Z = aFragment.GetZ_asInt();
     auto ana = G4AnalysisManager::Instance();
-    ana->FillH1(hEexcDeexID, U_GeV);
-    ana->FillH1(hAEexcDeexID, 1000*U_GeV/A);
+    ana->FillH1(hEexcDeexID, U/GeV);
+    ana->FillH1(hAEexcDeexID, U/MeV/A);
     ana->FillH1(hAdeexID, A);
     ana->FillH1(hZdeexID, Z);
+
+
+    ana->FillNtupleIColumn( tuple->ids.AremDeex, A );
+    ana->FillNtupleIColumn( tuple->ids.ZremDeex, Z );
+    ana->FillNtupleDColumn( tuple->ids.EexcDeex, U/MeV );
+    ana->FillNtupleIColumn( tuple->ids.NexcDeex, aFragment.GetNumberOfExcitons() );
+    ana->FillNtupleIColumn( tuple->ids.NparDeex, aFragment.GetNumberOfParticles() );
+    ana->FillNtupleIColumn( tuple->ids.NholDeex, aFragment.GetNumberOfHoles() );
+
     G4PreCompoundModel::PerformEquilibriumEmission(
         aFragment, result);
 }

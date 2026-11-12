@@ -17,9 +17,19 @@ public:
         G4int ntuple;
 
         // Event-level
-        G4int Arem;
-        G4int Zrem;
-        G4int Eexc;
+        G4int AremPreco;
+        G4int ZremPreco;
+        G4int EexcPreco;
+        G4int AremDeex;
+        G4int ZremDeex;
+        G4int EexcDeex;
+
+        G4int NexcPreco;
+        G4int NparPreco;
+        G4int NholPreco;
+        G4int NexcDeex;
+        G4int NparDeex;
+        G4int NholDeex;
 
         G4int nSecondaries;
         G4int secKinetic;
@@ -46,9 +56,21 @@ public:
 
         ids.ntuple = man->CreateNtuple("events", "Hadronic events");
 
-        ids.Arem = man->CreateNtupleIColumn(ids.ntuple, "Arem");
-        ids.Zrem = man->CreateNtupleIColumn(ids.ntuple, "Zrem");
-        ids.Eexc = man->CreateNtupleDColumn(ids.ntuple, "Eexc_MeV");
+        ids.AremPreco = man->CreateNtupleIColumn(ids.ntuple, "AremPreco");
+        ids.ZremPreco = man->CreateNtupleIColumn(ids.ntuple, "ZremPreco");
+        ids.EexcPreco = man->CreateNtupleDColumn(ids.ntuple, "EexcPreco_MeV");
+
+        ids.AremDeex = man->CreateNtupleIColumn(ids.ntuple, "AremDeex");
+        ids.ZremDeex = man->CreateNtupleIColumn(ids.ntuple, "ZremDeex");
+        ids.EexcDeex = man->CreateNtupleDColumn(ids.ntuple, "EexcDeex_MeV");
+
+        ids.NexcPreco = man->CreateNtupleIColumn(ids.ntuple, "NexcPreco");
+        ids.NparPreco = man->CreateNtupleIColumn(ids.ntuple, "NparPreco");
+        ids.NholPreco = man->CreateNtupleIColumn(ids.ntuple, "NholPreco");
+
+        ids.NexcDeex = man->CreateNtupleIColumn(ids.ntuple, "NexcDeex");
+        ids.NparDeex = man->CreateNtupleIColumn(ids.ntuple, "NparDeex");
+        ids.NholDeex = man->CreateNtupleIColumn(ids.ntuple, "NholDeex");
 
         ids.nSecondaries = man->CreateNtupleIColumn(
             ids.ntuple, "nSecondaries");
