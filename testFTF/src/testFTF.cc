@@ -46,10 +46,10 @@ struct InputParameters
 {
     int targetMassNumberA = 208;
     int targetAtomicNumberZ = 82;
-    double projectileEnergyGeV = 2.0;
+    double projectileEnergyGeV = 10.0;
     std::string projectileName = "proton";
     std::string theoGeneratorName = "FTFB";
-    int nEvents = 1000;
+    int nEvents = 10000;
 
     InputParameters(int argc, char* argv[])
     {
@@ -102,7 +102,8 @@ int main(int argc, char* argv[])
     auto ana = G4AnalysisManager::Instance();
     ana->OpenFile(output_filename);
 
-    int nEvents4printout = nEvents/10;
+    int nEvents4printoutMin = 1;
+    int nEvents4printout = std::max(nEvents/10,nEvents4printoutMin);
     // Random engine
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
     G4Random::setTheSeed(123456);

@@ -107,15 +107,17 @@ void compare(const char* file1Name,
         //    hist2->Scale(1.0 / hist2->Integral());
 
         hist1->SetMaximum(
-            1.15 * std::max(hist1->GetMaximum(),
+            1.35 * std::max(hist1->GetMaximum(),
                             hist2->GetMaximum()));
 
         hist1->Draw("HIST");
         hist2->Draw("HIST SAME");
 
-        auto* legend = new TLegend(0.50, 0.5, 0.90, 0.90);
-        legend->AddEntry(hist1, file1Name, "l");
-        legend->AddEntry(hist2, file2Name, "l");
+        auto* legend = new TLegend(0.50, 0.7, 0.90, 0.90);
+        // legend->AddEntry(hist1, file1Name, "l");
+        // legend->AddEntry(hist2, file2Name, "l");
+        legend->AddEntry(hist1, "FTFP", "l");
+        legend->AddEntry(hist2, "FTFB", "l");
         legend->Draw();
 
         // Lower pad: ratio.
@@ -164,6 +166,7 @@ void compare(const char* file1Name,
 				canvas->Update();
 
         canvas->Update();
+        canvas->SaveAs(("comparison_" + name + ".png").c_str());
     }
 }
 

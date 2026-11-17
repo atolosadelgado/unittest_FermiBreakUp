@@ -8,20 +8,34 @@ include(${Geant4_USE_FILE})
 
 include_directories(${CMAKE_SOURCE_DIR})
 
-add_executable(testFermiBreakUp testFermiBreakUp.cc)
+# Enable UndefinedBehaviorSanitizer
+option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer" OFF)
 
-target_link_libraries(testFermiBreakUp
-    ${Geant4_LIBRARIES}
-)
+if(ENABLE_UBSAN)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(STATUS "Undefined Behavior Sanitizer enabled")
 
-add_executable(testFTF testFTF.cc)
+        add_compile_options(
+            -fsanitize=undefined
+            -fno-sanitize-recover=undefined
+            -fno-omit-frame-pointer
+            -g
+        )
 
-target_link_libraries(testFTF
-    ${Geant4_LIBRARIES}
-)
+        add_link_options(
+            -fsanitize=undefined
+        )
+    else()
+        message(WARNING "UBSan is not supported with this compiler")
+    endif()
+endif()
 
-add_executable(testG4analysis testG4analysis.cc)
 
-target_link_libraries(testG4analysis
-    ${Geant4_LIBRARIES}
-)
+
+add_subdirectory(testFBU)
+
+add_subdirectory(testFTF)
+
+add_subdirectory(testAnalysis)
+
+
