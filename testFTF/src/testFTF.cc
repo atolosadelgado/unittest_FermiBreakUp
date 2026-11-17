@@ -26,6 +26,7 @@
 #include "G4DeexPrecoParameters.hh"
 // custom precompound
 #include "G4DebugPreCompoundModel.hh"
+#include "G4DebugGeneratorPrecompoundInterface.hh"
 
 void BuildFTF(std::unique_ptr<G4TheoFSGenerator>       & theogen,
               std::unique_ptr<G4DebugPreCompoundModel> & precompound,
@@ -200,7 +201,10 @@ void BuildFTF(std::unique_ptr<G4TheoFSGenerator>& theogen,
 
     G4VIntraNuclearTransportModel *transport = nullptr;
     if("FTFP" == theogenName)
-        transport = new G4GeneratorPrecompoundInterface;
+    {
+        // transport = new G4GeneratorPrecompoundInterface;
+        transport = new G4DebugGeneratorPrecompoundInterface;
+    }
     else if ("FTFB" == theogenName)
         transport = new G4BinaryCascade;
     else{
