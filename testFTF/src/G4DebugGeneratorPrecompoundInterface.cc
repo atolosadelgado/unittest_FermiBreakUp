@@ -23,7 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
+// //
 // -----------------------------------------------------------------------------
 //      GEANT 4 class file
 //
@@ -211,7 +211,7 @@ G4DebugGeneratorPrecompoundInterface::Propagate(G4KineticTrackVector* theSeconda
                 theNew->GetTotalEnergy(),
                 theNew->GetMomentum()
             );
-            static_cast<G4DebugPreCompoundModel*>(this->GetDeExcitation())-> tuple->AddSecondary(dynpart);
+            static_cast<G4DebugPreCompoundModel*>(this->GetDeExcitation())-> tuple->AddFTFSecondary(dynpart);
             delete dynpart;
 
         }

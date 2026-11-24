@@ -1,195 +1,427 @@
 
+#ifndef HADRONIC_EVENT_TUPLE_HH
+#define HADRONIC_EVENT_TUPLE_HH
+
 #include <vector>
-#include <memory>
-#include <algorithm>
-#include <utility>
+#include <numeric>
+#include <string>
 
 #include "G4SystemOfUnits.hh"
 #include "G4Types.hh"
 #include "G4AnalysisManager.hh"
 #include "G4DynamicParticle.hh"
+#include "G4Exception.hh"
 
 class HadronicEventTuple
 {
 public:
 
-    struct IDs {
-        G4int ntuple;
+    // Information about the nuclear remnant
+    struct RemnantInfo {
+        G4int A = -1;
+        G4int Z = -1;
+        G4double Eexc = -1.0;
 
-        // Event-level
-        G4int AremPreco;
-        G4int ZremPreco;
-        G4int EexcPreco;
-        G4int AremDeex;
-        G4int ZremDeex;
-        G4int EexcDeex;
-
-        G4int NexcPreco;
-        G4int NparPreco;
-        G4int NholPreco;
-        G4int NexcDeex;
-        G4int NparDeex;
-        G4int NholDeex;
-
-        G4int nSecondaries;
-        G4int secKinetic;
-        G4int secMass;
-        G4int secTotal;
-
-        // Secondary-level vectors
-        G4int secPDG;
-        G4int secCharge;
-        G4int secBaryonNumber;
-
-        G4int secKineticVector;
-        G4int secMassVector;
-        G4int secTotalVector;
-
-        G4int secPx;
-        G4int secPy;
-        G4int secPz;
+        G4int Nexc = -1;
+        G4int Npar = -1;
+        G4int Nhol = -1;
     };
 
     HadronicEventTuple()
     {
         auto* man = G4AnalysisManager::Instance();
 
-        ids.ntuple = man->CreateNtuple("events", "Hadronic events");
+        // Create ntuple
+        ntupleID = man->CreateNtuple(
+            "events", "Hadronic events");
 
-        ids.AremPreco = man->CreateNtupleIColumn(ids.ntuple, "AremPreco");
-        ids.ZremPreco = man->CreateNtupleIColumn(ids.ntuple, "ZremPreco");
-        ids.EexcPreco = man->CreateNtupleDColumn(ids.ntuple, "EexcPreco_MeV");
+        // --------------------------------------------------
+        // Remnant before precompound
+        // --------------------------------------------------
 
-        ids.AremDeex = man->CreateNtupleIColumn(ids.ntuple, "AremDeex");
-        ids.ZremDeex = man->CreateNtupleIColumn(ids.ntuple, "ZremDeex");
-        ids.EexcDeex = man->CreateNtupleDColumn(ids.ntuple, "EexcDeex_MeV");
+        AremBeforePreco = man->CreateNtupleIColumn(
+            ntupleID, "AremBeforePreco");
 
-        ids.NexcPreco = man->CreateNtupleIColumn(ids.ntuple, "NexcPreco");
-        ids.NparPreco = man->CreateNtupleIColumn(ids.ntuple, "NparPreco");
-        ids.NholPreco = man->CreateNtupleIColumn(ids.ntuple, "NholPreco");
+        ZremBeforePreco = man->CreateNtupleIColumn(
+            ntupleID, "ZremBeforePreco");
 
-        ids.NexcDeex = man->CreateNtupleIColumn(ids.ntuple, "NexcDeex");
-        ids.NparDeex = man->CreateNtupleIColumn(ids.ntuple, "NparDeex");
-        ids.NholDeex = man->CreateNtupleIColumn(ids.ntuple, "NholDeex");
+        EexcBeforePreco = man->CreateNtupleDColumn(
+            ntupleID, "EexcBeforePreco_MeV");
 
-        ids.nSecondaries = man->CreateNtupleIColumn(
-            ids.ntuple, "nSecondaries");
+        NexcBeforePreco = man->CreateNtupleIColumn(
+            ntupleID, "NexcBeforePreco");
 
-        ids.secKinetic = man->CreateNtupleDColumn(
-            ids.ntuple, "secKinetic_MeV");
+        NparBeforePreco = man->CreateNtupleIColumn(
+            ntupleID, "NparBeforePreco");
 
-        ids.secMass = man->CreateNtupleDColumn(
-            ids.ntuple, "secMass_MeV");
+        NholBeforePreco = man->CreateNtupleIColumn(
+            ntupleID, "NholBeforePreco");
 
-        ids.secTotal = man->CreateNtupleDColumn(
-            ids.ntuple, "secTotal_MeV");
 
-        // Vector columns
-        ids.secPDG = man->CreateNtupleIColumn(
-            ids.ntuple, "secPDG", secPDG);
+        // --------------------------------------------------
+        // Remnant before deexcitation
+        // --------------------------------------------------
 
-        ids.secCharge = man->CreateNtupleDColumn(
-            ids.ntuple, "secCharge", secCharge);
+        AremBeforeDeex = man->CreateNtupleIColumn(
+            ntupleID, "AremBeforeDeex");
 
-        ids.secBaryonNumber = man->CreateNtupleIColumn(
-            ids.ntuple, "secBaryonNumber", secBaryonNumber);
+        ZremBeforeDeex = man->CreateNtupleIColumn(
+            ntupleID, "ZremBeforeDeex");
 
-        ids.secKineticVector = man->CreateNtupleDColumn(
-            ids.ntuple, "secKinetic_i_MeV", secKinetic_i);
+        EexcBeforeDeex = man->CreateNtupleDColumn(
+            ntupleID, "EexcBeforeDeex_MeV");
 
-        ids.secMassVector = man->CreateNtupleDColumn(
-            ids.ntuple, "secMass_i_MeV", secMass_i);
+        NexcBeforeDeex = man->CreateNtupleIColumn(
+            ntupleID, "NexcBeforeDeex");
 
-        ids.secTotalVector = man->CreateNtupleDColumn(
-            ids.ntuple, "secTotal_i_MeV", secTotal_i);
+        NparBeforeDeex = man->CreateNtupleIColumn(
+            ntupleID, "NparBeforeDeex");
 
-        ids.secPx = man->CreateNtupleDColumn(
-            ids.ntuple, "secPx_MeV", secPx);
+        NholBeforeDeex = man->CreateNtupleIColumn(
+            ntupleID, "NholBeforeDeex");
 
-        ids.secPy = man->CreateNtupleDColumn(
-            ids.ntuple, "secPy_MeV", secPy);
 
-        ids.secPz = man->CreateNtupleDColumn(
-            ids.ntuple, "secPz_MeV", secPz);
+        // --------------------------------------------------
+        // Secondary collections
+        // --------------------------------------------------
 
-        man->FinishNtuple(ids.ntuple);
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        CreateSecondaryColumns(man, "ftf_", ftf);
+        CreateSecondaryColumns(man, "ftfp_", ftfp);
+
+        man->FinishNtuple(ntupleID);
     }
 
-    IDs ids;
 
-    // Vector buffers
-    std::vector<G4int> secPDG;
-    std::vector<G4int> secBaryonNumber;
+    // ======================================================
+    // Public interface
+    // ======================================================
 
-    std::vector<G4double> secCharge;
-    std::vector<G4double> secKinetic_i;
-    std::vector<G4double> secMass_i;
-    std::vector<G4double> secTotal_i;
-
-    std::vector<G4double> secPx;
-    std::vector<G4double> secPy;
-    std::vector<G4double> secPz;
-
-    void AddSecondary(const G4DynamicParticle* particle)
+    void SetRemnantBeforePrecompound(const RemnantInfo& info)
     {
-        const auto* def = particle->GetDefinition();
-        const auto& p = particle->GetMomentum();
-
-        secPDG.push_back(def->GetPDGEncoding());
-        secCharge.push_back(def->GetPDGCharge());
-        secBaryonNumber.push_back(def->GetBaryonNumber());
-
-        secKinetic_i.push_back(particle->GetKineticEnergy() / MeV);
-        secMass_i.push_back(particle->GetMass() / MeV);
-        secTotal_i.push_back(particle->GetTotalEnergy() / MeV);
-
-        secPx.push_back(p.x() / MeV);
-        secPy.push_back(p.y() / MeV);
-        secPz.push_back(p.z() / MeV);
-
+        remnantBeforePreco = info;
     }
+
+    void SetRemnantBeforeDeexcitation(const RemnantInfo& info)
+    {
+        remnantBeforeDeex = info;
+    }
+
+
+    void AddFTFSecondary(const G4DynamicParticle* particle)
+    {
+        AddSecondary(ftf, particle);
+    }
+
+    void AddHadronicSecondary(const G4DynamicParticle* particle)
+    {
+        AddSecondary(ftfp, particle);
+    }
+
 
     void FillEvent()
     {
         auto* man = G4AnalysisManager::Instance();
 
-        // Assuming scalar columns are filled already...
-        auto sum_ff = [](std::vector<G4double> & vector){
-            G4double sum=0;
-            for( auto number : vector) sum+=number;
-            return sum;
-        };
+        if (!CheckConsistency(ftf) || !CheckConsistency(ftfp)) {
+            G4Exception(
+                "HadronicEventTuple::FillEvent",
+                "HadronicTuple001",
+                JustWarning,
+                "Inconsistent secondary vector sizes.");
+            return;
+        }
 
-        G4double secKinetic_MeV = sum_ff(secKinetic_i);
-        G4double secMass_MeV = sum_ff(secMass_i);
-        G4double secTotal_MeV = sum_ff(secTotal_i);
+        // --------------------------------------------------
+        // Remnant before precompound
+        // --------------------------------------------------
 
-        man->FillNtupleDColumn( ids.secKinetic, secKinetic_MeV);
-        man->FillNtupleDColumn( ids.secMass, secMass_MeV);
-        man->FillNtupleDColumn( ids.secTotal, secTotal_MeV);
+        man->FillNtupleIColumn(
+            ntupleID, AremBeforePreco, remnantBeforePreco.A);
 
-        man->FillNtupleIColumn(ids.ntuple, ids.nSecondaries,
-                            secPDG.size());
+        man->FillNtupleIColumn(
+            ntupleID, ZremBeforePreco, remnantBeforePreco.Z);
 
-        man->AddNtupleRow(ids.ntuple);
+        man->FillNtupleDColumn(
+            ntupleID, EexcBeforePreco,
+            remnantBeforePreco.Eexc / MeV);
+
+        man->FillNtupleIColumn(
+            ntupleID, NexcBeforePreco, remnantBeforePreco.Nexc);
+
+        man->FillNtupleIColumn(
+            ntupleID, NparBeforePreco, remnantBeforePreco.Npar);
+
+        man->FillNtupleIColumn(
+            ntupleID, NholBeforePreco, remnantBeforePreco.Nhol);
+
+
+        // --------------------------------------------------
+        // Remnant before deexcitation
+        // --------------------------------------------------
+
+        man->FillNtupleIColumn(
+            ntupleID, AremBeforeDeex, remnantBeforeDeex.A);
+
+        man->FillNtupleIColumn(
+            ntupleID, ZremBeforeDeex, remnantBeforeDeex.Z);
+
+        man->FillNtupleDColumn(
+            ntupleID, EexcBeforeDeex,
+            remnantBeforeDeex.Eexc / MeV);
+
+        man->FillNtupleIColumn(
+            ntupleID, NexcBeforeDeex, remnantBeforeDeex.Nexc);
+
+        man->FillNtupleIColumn(
+            ntupleID, NparBeforeDeex, remnantBeforeDeex.Npar);
+
+        man->FillNtupleIColumn(
+            ntupleID, NholBeforeDeex, remnantBeforeDeex.Nhol);
+
+
+        // --------------------------------------------------
+        // Secondary summary information
+        // --------------------------------------------------
+
+        FillSecondarySummary(man, ftf);
+        FillSecondarySummary(man, ftfp);
+
+
+        // Write one row per event
+        man->AddNtupleRow(ntupleID);
 
         Clear();
     }
 
+
     void Clear()
     {
-        secPDG.clear();
-        secCharge.clear();
-        secBaryonNumber.clear();
+        remnantBeforePreco = RemnantInfo{};
+        remnantBeforeDeex = RemnantInfo{};
 
-        secKinetic_i.clear();
-        secMass_i.clear();
-        secTotal_i.clear();
+        ClearSecondaryData(ftf);
+        ClearSecondaryData(ftfp);
+    }
 
-        secPx.clear();
-        secPy.clear();
-        secPz.clear();
+
+private:
+
+    // ======================================================
+    // Internal data structures
+    // ======================================================
+
+    struct SecondaryData {
+
+        // Scalar column IDs
+        G4int nSecondaries;
+        G4int sumKinetic;
+        G4int sumMass;
+        G4int sumTotal;
+
+        // Vector column IDs
+        G4int PDG;
+        G4int charge;
+        G4int baryonNumber;
+
+        G4int kinetic;
+        G4int mass;
+        G4int total;
+
+        G4int px;
+        G4int py;
+        G4int pz;
+
+        // Vector buffers
+        std::vector<G4int> secPDG;
+        std::vector<G4int> secBaryonNumber;
+
+        std::vector<G4double> secCharge;
+
+        std::vector<G4double> secKinetic;
+        std::vector<G4double> secMass;
+        std::vector<G4double> secTotal;
+
+        std::vector<G4double> secPx;
+        std::vector<G4double> secPy;
+        std::vector<G4double> secPz;
+    };
+
+
+    // ======================================================
+    // Ntuple column IDs
+    // ======================================================
+
+    G4int ntupleID;
+
+    // Remnant before precompound
+    G4int AremBeforePreco;
+    G4int ZremBeforePreco;
+    G4int EexcBeforePreco;
+
+    G4int NexcBeforePreco;
+    G4int NparBeforePreco;
+    G4int NholBeforePreco;
+
+    // Remnant before deexcitation
+    G4int AremBeforeDeex;
+    G4int ZremBeforeDeex;
+    G4int EexcBeforeDeex;
+
+    G4int NexcBeforeDeex;
+    G4int NparBeforeDeex;
+    G4int NholBeforeDeex;
+
+
+    // ======================================================
+    // Event data
+    // ======================================================
+
+    RemnantInfo remnantBeforePreco;
+    RemnantInfo remnantBeforeDeex;
+
+    SecondaryData ftf;
+    SecondaryData ftfp;
+
+
+    // ======================================================
+    // Internal methods
+    // ======================================================
+
+    void CreateSecondaryColumns(
+        G4AnalysisManager* man,
+        const std::string& prefix,
+        SecondaryData& data)
+    {
+        // Scalar columns
+        data.nSecondaries = man->CreateNtupleIColumn(
+            ntupleID, prefix + "nSecondaries");
+
+        data.sumKinetic = man->CreateNtupleDColumn(
+            ntupleID, prefix + "sumKinetic_MeV");
+
+        data.sumMass = man->CreateNtupleDColumn(
+            ntupleID, prefix + "sumMass_MeV");
+
+        data.sumTotal = man->CreateNtupleDColumn(
+            ntupleID, prefix + "sumTotal_MeV");
+
+
+        // Vector columns
+        data.PDG = man->CreateNtupleIColumn(
+            ntupleID, prefix + "secPDG", data.secPDG);
+
+        data.charge = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secCharge", data.secCharge);
+
+        data.baryonNumber = man->CreateNtupleIColumn(
+            ntupleID, prefix + "secBaryonNumber",
+            data.secBaryonNumber);
+
+        data.kinetic = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secKinetic_i_MeV",
+            data.secKinetic);
+
+        data.mass = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secMass_i_MeV",
+            data.secMass);
+
+        data.total = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secTotal_i_MeV",
+            data.secTotal);
+
+        data.px = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secPx_i_MeV",
+            data.secPx);
+
+        data.py = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secPy_i_MeV",
+            data.secPy);
+
+        data.pz = man->CreateNtupleDColumn(
+            ntupleID, prefix + "secPz_i_MeV",
+            data.secPz);
+    }
+
+
+    void AddSecondary(
+        SecondaryData& data,
+        const G4DynamicParticle* particle)
+    {
+        if (!particle) return;
+
+        const auto* def = particle->GetDefinition();
+        const auto& p = particle->GetMomentum();
+
+        const G4double ekin = particle->GetKineticEnergy();
+        const G4double mass = particle->GetMass();
+
+        data.secPDG.push_back(def->GetPDGEncoding());
+        data.secCharge.push_back(def->GetPDGCharge());
+        data.secBaryonNumber.push_back(def->GetBaryonNumber());
+
+        data.secKinetic.push_back(ekin / MeV);
+        data.secMass.push_back(mass / MeV);
+        data.secTotal.push_back(particle->GetTotalEnergy() / MeV);
+
+        data.secPx.push_back(p.x() / MeV);
+        data.secPy.push_back(p.y() / MeV);
+        data.secPz.push_back(p.z() / MeV);
+    }
+
+
+    void FillSecondarySummary(
+        G4AnalysisManager* man,
+        const SecondaryData& data)
+    {
+        const auto sum = [](const std::vector<G4double>& v) {
+            return std::accumulate(
+                v.begin(), v.end(), G4double{0.0});
+        };
+
+        man->FillNtupleIColumn(
+            ntupleID, data.nSecondaries, data.secPDG.size());
+
+        man->FillNtupleDColumn(
+            ntupleID, data.sumKinetic, sum(data.secKinetic));
+
+        man->FillNtupleDColumn(
+            ntupleID, data.sumMass, sum(data.secMass));
+
+        man->FillNtupleDColumn(
+            ntupleID, data.sumTotal, sum(data.secTotal));
+    }
+
+
+    G4bool CheckConsistency(const SecondaryData& data) const
+    {
+        const auto n = data.secPDG.size();
+
+        return data.secCharge.size() == n &&
+               data.secBaryonNumber.size() == n &&
+               data.secKinetic.size() == n &&
+               data.secMass.size() == n &&
+               data.secTotal.size() == n &&
+               data.secPx.size() == n &&
+               data.secPy.size() == n &&
+               data.secPz.size() == n;
+    }
+
+
+    void ClearSecondaryData(SecondaryData& data)
+    {
+        data.secPDG.clear();
+        data.secCharge.clear();
+        data.secBaryonNumber.clear();
+
+        data.secKinetic.clear();
+        data.secMass.clear();
+        data.secTotal.clear();
+
+        data.secPx.clear();
+        data.secPy.clear();
+        data.secPz.clear();
     }
 
 };
+
+#endif

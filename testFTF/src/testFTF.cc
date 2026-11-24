@@ -160,12 +160,12 @@ int main(int argc, char* argv[])
         G4HadFinalState* finalState =
         ftfp->ApplyYourself(projectile, target);
 
-        // for( int i =0; i<finalState->GetNumberOfSecondaries(); ++i )
-        // {
-        //     const auto * dynpart = finalState->GetSecondary(i)->GetParticle();
-        //     precompound->tuple->AddSecondary(dynpart);
-        //
-        // }
+        for( int i =0; i<finalState->GetNumberOfSecondaries(); ++i )
+        {
+            const auto * dynpart = finalState->GetSecondary(i)->GetParticle();
+            precompound->tuple->AddHadronicSecondary(dynpart);
+
+        }
 
         precompound->tuple->FillEvent();
 

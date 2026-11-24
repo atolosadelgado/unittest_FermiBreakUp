@@ -38,12 +38,15 @@ G4DebugPreCompoundModel::DeExcite(G4Fragment& aFragment)
     ana->FillH1(hAprecoID, A);
     ana->FillH1(hZprecoID, Z);
 
-    ana->FillNtupleIColumn( tuple->ids.AremPreco, A );
-    ana->FillNtupleIColumn( tuple->ids.ZremPreco, Z );
-    ana->FillNtupleDColumn( tuple->ids.EexcPreco, U/MeV );
-    ana->FillNtupleIColumn( tuple->ids.NexcPreco, aFragment.GetNumberOfExcitons() );
-    ana->FillNtupleIColumn( tuple->ids.NparPreco, aFragment.GetNumberOfParticles() );
-    ana->FillNtupleIColumn( tuple->ids.NholPreco, aFragment.GetNumberOfHoles() );
+    // Ntuple
+    tuple->SetRemnantBeforePrecompound({
+        A,
+        Z,
+        U,
+        aFragment.GetNumberOfExcitons(),
+        aFragment.GetNumberOfParticles(),
+        aFragment.GetNumberOfHoles()
+    });
 
     // if (!isActive)
     //     G4cout << "Skipping: inactive" << G4endl;
@@ -135,12 +138,14 @@ void G4DebugPreCompoundModel::PerformEquilibriumEmission(
     ana->FillH1(hZdeexID, Z);
 
 
-    ana->FillNtupleIColumn( tuple->ids.AremDeex, A );
-    ana->FillNtupleIColumn( tuple->ids.ZremDeex, Z );
-    ana->FillNtupleDColumn( tuple->ids.EexcDeex, U/MeV );
-    ana->FillNtupleIColumn( tuple->ids.NexcDeex, aFragment.GetNumberOfExcitons() );
-    ana->FillNtupleIColumn( tuple->ids.NparDeex, aFragment.GetNumberOfParticles() );
-    ana->FillNtupleIColumn( tuple->ids.NholDeex, aFragment.GetNumberOfHoles() );
+    tuple->SetRemnantBeforeDeexcitation({
+        A,
+        Z,
+        U,
+        aFragment.GetNumberOfExcitons(),
+        aFragment.GetNumberOfParticles(),
+        aFragment.GetNumberOfHoles()
+    });
 
     G4PreCompoundModel::PerformEquilibriumEmission(
         aFragment, result);
