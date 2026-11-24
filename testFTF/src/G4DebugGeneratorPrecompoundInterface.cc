@@ -90,6 +90,8 @@
 #include "G4Log.hh"
 #include "Randomize.hh"
 
+#include "G4DebugPreCompoundModel.hh"
+
 // #define debugPrecoInt
 
 G4DebugGeneratorPrecompoundInterface::G4DebugGeneratorPrecompoundInterface(G4VPreCompoundModel* preModel)
@@ -201,6 +203,21 @@ G4DebugGeneratorPrecompoundInterface::Propagate(G4KineticTrackVector* theSeconda
         theNew->SetParentResonanceID((*iter)->GetParentResonanceID());
         theTotalResult->push_back(theNew);
         Secondary4Momentum += (*iter)->Get4Momentum();
+
+
+        {
+            const auto * dynpart = new G4DynamicParticle(
+                theNew->GetDefinition(),
+                theNew->GetTotalEnergy(),
+                theNew->GetMomentum()
+            );
+            static_cast<G4DebugPreCompoundModel*>(this->GetDeExcitation())-> tuple->AddSecondary(dynpart);
+            delete dynpart;
+
+        }
+
+
+
 #ifdef debugPrecoInt
         G4cout << "Secondary 4Mom " << part->GetParticleName() << " " << (*iter)->Get4Momentum()
                << " " << (*iter)->Get4Momentum().mag() << G4endl;

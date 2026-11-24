@@ -30,6 +30,7 @@
 
 void BuildFTF(std::unique_ptr<G4TheoFSGenerator>       & theogen,
               std::unique_ptr<G4DebugPreCompoundModel> & precompound,
+              std::unique_ptr<G4DebugGeneratorPrecompoundInterface> & gpInterface,
               std::string theogenName);
 
 // Headers to initialize particles
@@ -50,6 +51,7 @@ struct InputParameters
     double projectileEnergyGeV = 10.0;
     std::string projectileName = "proton";
     std::string theoGeneratorName = "FTFB";
+    double CaptureThreshold = 70;
     int nEvents = 10000;
 
     InputParameters(int argc, char* argv[])
@@ -59,7 +61,8 @@ struct InputParameters
         if (argc > 3) projectileEnergyGeV = std::atof(argv[3]);
         if (argc > 4) projectileName = argv[4];
         if (argc > 5) theoGeneratorName = argv[5];
-        if (argc > 6) nEvents = std::atoi(argv[6]);
+        if (argc > 6) CaptureThreshold =  std::atof(argv[6]);
+        if (argc > 7) nEvents = std::atoi(argv[7]);
     }
     void Show(){
         std::cout << "---------------------------------" << std::endl;
@@ -69,6 +72,7 @@ struct InputParameters
         std::cout << "\tEnergy = "     << projectileEnergyGeV << " GeV\n";
         std::cout << "\tProjectile = " << projectileName << '\n';
         std::cout << "\tModel = "      << theoGeneratorName << '\n';
+        std::cout << "\tCaptureThr = " << CaptureThreshold << " MeV\n";
         std::cout << "\tEvents = "     << nEvents << '\n';
         std::cout << "---------------------------------" << std::endl;
     }
@@ -86,10 +90,12 @@ int main(int argc, char* argv[])
     double projectileEnergyGeV = input.projectileEnergyGeV;
     std::string projectileName = input.projectileName;
     std::string theoGeneratorName = input.theoGeneratorName;
+    double CaptureThreshold = input.CaptureThreshold;
     int nEvents = input.nEvents;
 
     std::string output_filename("test_");
     output_filename += theoGeneratorName;
+    output_filename += std::to_string(int(CaptureThreshold));
     output_filename += "_";
     output_filename += (std::to_string(targetMassNumberA) + "A");
     output_filename += "_";
@@ -141,7 +147,12 @@ int main(int argc, char* argv[])
     // Initialize FTFP
     std::unique_ptr<G4TheoFSGenerator> ftfp;
     std::unique_ptr<G4DebugPreCompoundModel> precompound;
-    BuildFTF(ftfp,precompound, theoGeneratorName);
+    std::unique_ptr<G4DebugGeneratorPrecompoundInterface>
+        genPrecoInterface = std::make_unique<G4DebugGeneratorPrecompoundInterface>();
+    genPrecoInterface->SetCaptureThreshold(CaptureThreshold*MeV);
+
+    BuildFTF(ftfp,precompound, genPrecoInterface, theoGeneratorName);
+
 
     for(int i =0; i<nEvents; ++i)
     {
@@ -149,12 +160,12 @@ int main(int argc, char* argv[])
         G4HadFinalState* finalState =
         ftfp->ApplyYourself(projectile, target);
 
-        for( int i =0; i<finalState->GetNumberOfSecondaries(); ++i )
-        {
-            const auto * dynpart = finalState->GetSecondary(i)->GetParticle();
-            precompound->tuple->AddSecondary(dynpart);
-
-        }
+        // for( int i =0; i<finalState->GetNumberOfSecondaries(); ++i )
+        // {
+        //     const auto * dynpart = finalState->GetSecondary(i)->GetParticle();
+        //     precompound->tuple->AddSecondary(dynpart);
+        //
+        // }
 
         precompound->tuple->FillEvent();
 
@@ -193,6 +204,7 @@ void InitializeParticles()
 
 void BuildFTF(std::unique_ptr<G4TheoFSGenerator>& theogen,
                std::unique_ptr<G4DebugPreCompoundModel>& precompound,
+               std::unique_ptr<G4DebugGeneratorPrecompoundInterface> & gpInterface,
                std::string theogenName)
 {
     auto* excitationHandler = new G4ExcitationHandler;
@@ -203,7 +215,7 @@ void BuildFTF(std::unique_ptr<G4TheoFSGenerator>& theogen,
     if("FTFP" == theogenName)
     {
         // transport = new G4GeneratorPrecompoundInterface;
-        transport = new G4DebugGeneratorPrecompoundInterface;
+        transport = static_cast<G4VIntraNuclearTransportModel*>(gpInterface.get());
     }
     else if ("FTFB" == theogenName)
         transport = new G4BinaryCascade;
