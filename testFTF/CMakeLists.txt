@@ -1,8 +1,8 @@
-add_library(debugGenPrecoInterface src/G4DebugGeneratorPrecompoundInterface.cc)
-target_link_libraries(debugGenPrecoInterface
+add_library(mydebuglibs src/G4DebugGeneratorPrecompoundInterface.cc src/G4DebugPreCompoundModel.cc)
+target_link_libraries(mydebuglibs
     ${Geant4_LIBRARIES}
 )
-target_include_directories(debugGenPrecoInterface
+target_include_directories(mydebuglibs
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
@@ -16,5 +16,5 @@ target_include_directories(testFTF
 
 target_link_libraries(testFTF
     ${Geant4_LIBRARIES}
-    debugGenPrecoInterface
+    mydebuglibs
 )
