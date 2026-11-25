@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <cstdlib>
+#include <iomanip>
 
 //----
 #include "G4TheoFSGenerator.hh"
@@ -143,6 +144,25 @@ int main(int argc, char* argv[])
     // Initialize target: carbon-12
     G4Nucleus target;
     target.SetParameters(targetMassNumberA, targetAtomicNumberZ);
+
+    // Projectile four-momentum
+    G4LorentzVector projectile4Momentum = dynamicParticle.Get4Momentum();
+
+    // Target four-momentum (at rest)
+    G4LorentzVector target4Momentum(
+        G4ThreeVector(0., 0., 0.),
+        G4NucleiProperties::GetNuclearMass(targetMassNumberA, targetAtomicNumberZ)
+    );
+
+    // Total four-momentum
+    G4LorentzVector total4Momentum = projectile4Momentum + target4Momentum;
+
+    // Total energy in the laboratory frame
+    G4double totalEnergy = total4Momentum.e();
+
+    std::cout << std::fixed << std::setprecision(12)
+            << "\tTotal energy: " << totalEnergy/MeV
+            << " MeV" << std::endl;
 
     // Initialize FTFP
     std::unique_ptr<G4TheoFSGenerator> ftfp;
