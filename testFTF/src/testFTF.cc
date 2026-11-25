@@ -54,6 +54,7 @@ struct InputParameters
     std::string theoGeneratorName = "FTFB";
     double CaptureThreshold = 70;
     int nEvents = 10000;
+    int32_t seed = 123456789;
 
     InputParameters(int argc, char* argv[])
     {
@@ -64,6 +65,7 @@ struct InputParameters
         if (argc > 5) theoGeneratorName = argv[5];
         if (argc > 6) CaptureThreshold =  std::atof(argv[6]);
         if (argc > 7) nEvents = std::atoi(argv[7]);
+        if (argc > 8) seed = std::atoi(argv[8]);
     }
     void Show(){
         std::cout << "---------------------------------" << std::endl;
@@ -75,6 +77,7 @@ struct InputParameters
         std::cout << "\tModel = "      << theoGeneratorName << '\n';
         std::cout << "\tCaptureThr = " << CaptureThreshold << " MeV\n";
         std::cout << "\tEvents = "     << nEvents << '\n';
+        std::cout << "\tSeed = "       << seed << '\n';
         std::cout << "---------------------------------" << std::endl;
     }
 };
@@ -93,6 +96,7 @@ int main(int argc, char* argv[])
     std::string theoGeneratorName = input.theoGeneratorName;
     double CaptureThreshold = input.CaptureThreshold;
     int nEvents = input.nEvents;
+    int32_t seed = input.seed;
 
     std::string output_filename("test_");
     output_filename += theoGeneratorName;
@@ -105,6 +109,8 @@ int main(int argc, char* argv[])
     output_filename += (projectileName + std::to_string(int(projectileEnergyGeV)) + "GeV");
     output_filename += "_";
     output_filename += (std::to_string(nEvents) + "evts");
+    output_filename += "_";
+    output_filename += (std::to_string(seed) + "Seed");
     output_filename += ".root";
 
     auto ana = G4AnalysisManager::Instance();
@@ -114,7 +120,7 @@ int main(int argc, char* argv[])
     int nEvents4printout = std::max(nEvents/10,nEvents4printoutMin);
     // Random engine
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
-    G4Random::setTheSeed(123456);
+    G4Random::setTheSeed(seed);
 
     InitializeParticles();
 
@@ -192,6 +198,12 @@ int main(int argc, char* argv[])
         if( i%nEvents4printout ==0 )
             G4cout << "Progress... " << 100*i/nEvents << "%" << G4endl;
     }
+    // Save run info (seed for the moment)
+    G4int runInfoTupleID = ana->CreateNtuple("runInfo", "Run information");
+    G4int seedID = ana->CreateNtupleIColumn("seed");
+    ana->FinishNtuple(runInfoTupleID);
+    ana->FillNtupleIColumn(runInfoTupleID, seedID, seed);
+    ana->AddNtupleRow(runInfoTupleID);
 
     ana->Write();
     ana->CloseFile();
