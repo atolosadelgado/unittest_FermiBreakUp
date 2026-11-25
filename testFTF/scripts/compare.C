@@ -14,6 +14,9 @@
 
 void compare(const char* file1Name,
              const char* file2Name,
+						 const char* label1 = "Run 1",
+						 const char* label2 = "Run 2",
+             const char* pdfName = "comparison.pdf",
              int rebin = 1)
 {
     if (rebin < 1) {
@@ -40,9 +43,26 @@ void compare(const char* file1Name,
         "hAdeex",
         "hZdeex"
     };
+    
+    const std::map<std::string, std::string> histNamesTitleMap = {
+        {"hEexcPreco","E_{exc} (GeV) before Precompound"},
+        {"hEexcDeex","E_{exc} (GeV) before Deexcitation"},
+        {"hAEexcPreco","E_{exc}/A_{frag} (MeV/A)before Precompound"},
+        {"hAEexcDeex","E_{exc}/A_{frag} (MeV/A) before Deexcitation"},
+        {"hAEexcDeexNopreco","E_{exc}/A_{frag} (MeV/A) before Deexcitation (Prec. skipped)"},
+        {"hApreco","A_{frag} before Precompound"},
+        {"hZpreco","Z_{frag} before Precompound"},
+        {"hAdeex","A_{frag} before Deexcitation"},
+        {"hZdeex","Z_{frag} before Deexcitation"},
+    };
 
     gStyle->SetOptStat(0);
+		;
 
+		// Open PDF
+		TCanvas* pdfCanvas = new TCanvas();
+		pdfCanvas->Print(Form("%s[", pdfName));
+		
     for (const auto& name : histNames) {
 
         TH1D* h1 = dynamic_cast<TH1D*>(file1.Get(name.c_str()));
@@ -94,8 +114,8 @@ void compare(const char* file1Name,
 
         hist1->SetLineWidth(2);
         hist2->SetLineWidth(2);
-
-        hist1->SetTitle(name.c_str());
+        
+        hist1->SetTitle(histNamesTitleMap.at(name).c_str() );
         hist1->GetYaxis()->SetTitle("Events");
         hist1->GetXaxis()->SetLabelSize(0);
 
@@ -116,8 +136,8 @@ void compare(const char* file1Name,
         auto* legend = new TLegend(0.50, 0.7, 0.90, 0.90);
         // legend->AddEntry(hist1, file1Name, "l");
         // legend->AddEntry(hist2, file2Name, "l");
-        legend->AddEntry(hist1, "FTFP", "l");
-        legend->AddEntry(hist2, "FTFB", "l");
+        legend->AddEntry(hist1, label1, "l");
+        legend->AddEntry(hist2, label2, "l");
         legend->Draw();
 
         // Lower pad: ratio.
@@ -136,7 +156,7 @@ void compare(const char* file1Name,
 				ratio->SetMarkerStyle(20);
 				ratio->SetMarkerSize(0.5);
 
-				ratio->GetYaxis()->SetTitle("File 1 / File 2");
+				ratio->GetYaxis()->SetTitle( Form("%s / %s", label1, label2) );
 				ratio->GetYaxis()->SetNdivisions(505);
 				ratio->GetYaxis()->SetTitleSize(0.10);
 				ratio->GetYaxis()->SetTitleOffset(0.45);
@@ -166,7 +186,10 @@ void compare(const char* file1Name,
 				canvas->Update();
 
         canvas->Update();
-        canvas->SaveAs(("comparison_" + name + ".png").c_str());
+        //canvas->SaveAs(("comparison_" + name + ".png").c_str());
+        canvas->Print(pdfName);
     }
+    // Close PDF
+		pdfCanvas->Print(Form("%s]", pdfName));
 }
 
