@@ -38,4 +38,6 @@ add_subdirectory(testFTF)
 
 add_subdirectory(testAnalysis)
 
+add_subdirectory(testMaterials)
+
 
