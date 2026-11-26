@@ -77,19 +77,19 @@ void G4HadronInelasticFTFP_BIC::ConstructProcess()
     // 1.1 FTFB model
     G4FTFModel * theStringModel = new G4FTFModel();
     theStringModel->SetFragmentationModel(new G4ExcitedStringDecay());
-    G4TheoFSGenerator * theFTFB = new G4TheoFSGenerator("FTFB");
-    theFTFB->SetHighEnergyGenerator(theStringModel);
+    G4TheoFSGenerator * theFTFP = new G4TheoFSGenerator("FTFP");
+    theFTFP->SetHighEnergyGenerator(theStringModel);
     auto * transport_for_FTF = new G4GeneratorPrecompoundInterface();
-    theFTFB->SetTransport(transport_for_FTF);
-    theFTFB->SetMinEnergy(eminFtf);
-    theFTFB->SetMaxEnergy(emax);
+    theFTFP->SetTransport(transport_for_FTF);
+    theFTFP->SetMinEnergy(eminFtf);
+    theFTFP->SetMaxEnergy(emax);
 
     // 1.2 BIC model
     auto theBIC = new G4BinaryCascade(/*thePreCompound*/);
     theBIC->SetMaxEnergy(emaxBic);
 
     // 1.3 Register models into the process
-    hp->RegisterMe(theFTFB);
+    hp->RegisterMe(theFTFP);
     hp->RegisterMe(theBIC);
 
     // 2. Attach dataset of hadronic inelastic to process
@@ -126,7 +126,7 @@ void G4HadronInelasticFTFP_BIC::ConstructProcess()
          hp->MultiplyCrossSectionBy(param->XSFactorPionInelastic());
     }
 
-};
+  };
 
     ff_builder(G4Proton::Proton());
     ff_builder(G4Neutron::Neutron());
